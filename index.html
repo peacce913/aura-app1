@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aura — Luxury Productivity & Wellness Suite</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+              900: '#4c1d95',
+            },
+            accent: {
+              500: '#6366f1',
+              600: '#4f46e5',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js for Mood Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Light Theme Styling (High Contrast Dark Text on Pure White Backgrounds) */
+    html:not(.dark) {
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    html:not(.dark) .bg-surface {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    html:not(.dark) .bg-card-subtle {
+      background-color: #f1f5f9 !important;
+      border-color: #e2e8f0 !important;
+    }
+    html:not(.dark) .text-main {
+      color: #0f172a !important;
+    }
+    html:not(.dark) .text-muted {
+      color: #475569 !important;
+    }
+    html:not(.dark) input, 
+    html:not(.dark) select, 
+    html:not(.dark) textarea {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+    }
+    html:not(.dark) input::placeholder,
+    html:not(.dark) textarea::placeholder {
+      color: #94a3b8 !important;
+    }
+
+    /* Dark Theme Styling (Pitch-black & Glowing Blueish-Purple) */
+    html.dark {
+      background-color: #030712;
+      color: #f8fafc;
+    }
+    html.dark .bg-surface {
+      background-color: #0b0f19;
+      border-color: #1e1b4b;
+    }
+    html.dark .bg-card-subtle {
+      background-color: #111827;
+      border-color: #1f2937;
+    }
+    html.dark .text-main {
+      color: #f8fafc;
+    }
+    html.dark .text-muted {
+      color: #9ca3af;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(139, 92, 246, 0.3);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(139, 92, 246, 0.6);
+    }
+
+    /* EXPLICIT CSS MEDIA QUERIES FOR RESPONSIVE OPTIMIZATION */
+    @media (max-width: 640px) {
+      /* Mobile layout adjustments */
+      body {
+        font-size: 14px;
+      }
+      aside {
+        padding: 1rem !important;
+      }
+      main {
+        padding: 1rem !important;
+      }
+      .modal-box {
+        width: 95% !important;
+        padding: 1.25rem !important;
+      }
+      .mood-btn {
+        padding: 0.5rem !important;
+      }
+    }
+
+    @media (min-width: 641px) and (max-width: 1024px) {
+      /* Tablet view adjustments */
+      main {
+        padding: 1.5rem !important;
+      }
+    }
+
+    @media (min-width: 1025px) {
+      /* Desktop view adjustments */
+      aside {
+        min-height: 100vh;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- NAVIGATION SIDEBAR -->
+  <aside class="w-full md:w-64 bg-surface border-b md:border-b-0 md:border-r p-6 flex flex-col justify-between shrink-0 z-20">
+    <div>
+      <!-- Brand Header & Profile Picture Avatar -->
+      <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center space-x-3">
+          <!-- Profile Pic Trigger / Logo -->
+          <button onclick="openProfileModal()" class="relative group" title="Upload Profile Picture">
+            <div id="avatarContainer" class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-600 via-brand-500 to-accent-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/40 ring-2 ring-brand-400/30 overflow-hidden transition-transform group-hover:scale-105">
+              <i id="avatarFallbackIcon" class="fa-solid fa-wand-magic-sparkles text-lg animate-pulse"></i>
+              <img id="avatarImage" src="" alt="Profile" class="w-full h-full object-cover hidden" />
+            </div>
+            <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-brand-600 rounded-full border-2 border-surface flex items-center justify-center text-[10px] text-white">
+              <i class="fa-solid fa-camera"></i>
+            </div>
+          </button>
+          
+          <div>
+            <span class="text-xl font-extrabold tracking-tight text-main block leading-none">Aura</span>
+            <span class="text-[10px] font-semibold text-brand-500 uppercase tracking-widest mt-1 block">Suite</span>
+          </div>
+        </div>
+
+        <!-- Theme Toggle Button -->
+        <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2.5 rounded-xl border border-gray-300 dark:border-gray-800 text-muted hover:text-brand-500 hover:border-brand-500 transition-all">
+          <i id="themeIcon" class="fa-solid fa-sun text-amber-400"></i>
+        </button>
+      </div>
+
+      <!-- Language Selector -->
+      <div class="mb-6">
+        <label id="lblLang" class="block text-xs font-semibold text-muted uppercase tracking-wider mb-2">Language</label>
+        <select id="langSelect" onchange="changeLanguage(this.value)" class="w-full text-sm rounded-xl px-3 py-2.5 border font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all bg-surface text-main">
+          <option value="en">English (US)</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+          <option value="ja">日本語</option>
+        </select>
+      </div>
+
+      <!-- Nav Links -->
+      <nav class="space-y-1">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all bg-brand-600 text-white shadow-lg shadow-brand-600/30">
+          <i class="fa-solid fa-house w-5 text-center"></i>
+          <span id="txtNavDashboard">Dashboard</span>
+        </button>
+
+        <button onclick="switchTab('tasks')" id="nav-tasks" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-muted hover:bg-card-subtle hover:text-main">
+          <i class="fa-solid fa-check-double w-5 text-center"></i>
+          <span id="txtNavTasks">Tasks & Reminders</span>
+        </button>
+
+        <button onclick="switchTab('journal')" id="nav-journal" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-muted hover:bg-card-subtle hover:text-main">
+          <i class="fa-solid fa-book-bookmark w-5 text-center"></i>
+          <span id="txtNavJournal">Diary & Reflections</span>
+        </button>
+
+        <button onclick="switchTab('mood')" id="nav-mood" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-muted hover:bg-card-subtle hover:text-main">
+          <i class="fa-solid fa-chart-line-up w-5 text-center"></i>
+          <span id="txtNavMood">Mood Insights</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Sidebar Footer Quote -->
+    <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800/60 hidden md:block">
+      <div class="p-4 rounded-xl bg-card-subtle">
+        <p class="text-xs italic text-muted mb-2">"Simplicity is the ultimate sophistication."</p>
+        <span class="text-[10px] uppercase font-bold text-brand-500">— Aura Mindset</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="flex-1 overflow-y-auto p-4 sm:p-8 max-w-7xl mx-auto w-full">
+    
+    <!-- TOP HEADER -->
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-500 shadow-sm hidden sm:flex">
+          <i class="fa-solid fa-sparkles text-xl"></i>
+        </div>
+        <div>
+          <h1 id="greetingTitle" class="text-2xl sm:text-3xl font-extrabold text-main tracking-tight">Welcome Back</h1>
+          <p id="currentDateStr" class="text-sm text-muted mt-1 font-medium"></p>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="flex items-center gap-3">
+        <button onclick="openTaskModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-accent-500 hover:from-brand-700 hover:to-accent-600 text-white font-semibold text-sm shadow-md transition-all flex items-center gap-2">
+          <i class="fa-solid fa-plus"></i>
+          <span id="btnQuickTask">New Task</span>
+        </button>
+        <button onclick="openJournalModal()" class="px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-800 hover:border-brand-500 text-main font-semibold text-sm transition-all flex items-center gap-2 bg-surface">
+          <i class="fa-solid fa-pen-nib text-brand-500"></i>
+          <span id="btnQuickJournal">New Entry</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- TAB 1: DASHBOARD -->
+    <section id="tab-dashboard" class="tab-content space-y-8">
+      
+      <!-- STATS METRICS -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div class="p-6 rounded-2xl bg-surface border flex items-center justify-between shadow-sm">
+          <div>
+            <p id="lblPendingTasks" class="text-xs font-bold text-muted uppercase tracking-wider">Pending Tasks</p>
+            <p id="statPendingCount" class="text-3xl font-extrabold text-main mt-1">0</p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-clock"></i>
+          </div>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-surface border flex items-center justify-between shadow-sm">
+          <div>
+            <p id="lblCompletedTasks" class="text-xs font-bold text-muted uppercase tracking-wider">Completed Today</p>
+            <p id="statCompletedCount" class="text-3xl font-extrabold text-main mt-1">0</p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-surface border flex items-center justify-between shadow-sm">
+          <div>
+            <p id="lblTotalReflections" class="text-xs font-bold text-muted uppercase tracking-wider">Journal Entries</p>
+            <p id="statReflectionsCount" class="text-3xl font-extrabold text-main mt-1">0</p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-brand-500/10 text-brand-500 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-book-heart"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- DAILY MOOD CHECK-IN & ADVICE -->
+      <div class="p-6 sm:p-8 rounded-2xl bg-surface border shadow-sm">
+        <h2 id="lblHowFeeling" class="text-lg font-bold text-main mb-2">How are you feeling right now?</h2>
+        <p id="lblMoodDesc" class="text-sm text-muted mb-6">Select your current state to receive personalized advice & log your emotion.</p>
+
+        <!-- Mood Selector Buttons -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 mb-6">
+          <button onclick="selectMood('happy')" class="mood-btn p-3 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-brand-500 transition-all flex flex-col items-center gap-2 bg-card-subtle group">
+            <span class="text-2xl group-hover:scale-110 transition-transform">😊</span>
+            <span id="moodNameHappy" class="text-xs font-semibold text-main">Happy</span>
+          </button>
+          <button onclick="selectMood('focused')" class="mood-btn p-3 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-brand-500 transition-all flex flex-col items-center gap-2 bg-card-subtle group">
+            <span class="text-2xl group-hover:scale-110 transition-transform">🎯</span>
+            <span id="moodNameFocused" class="text-xs font-semibold text-main">Focused</span>
+          </button>
+          <button onclick="selectMood('calm')" class="mood-btn p-3 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-brand-500 transition-all flex flex-col items-center gap-2 bg-card-subtle group">
+            <span class="text-2xl group-hover:scale-110 transition-transform">🌿</span>
+            <span id="moodNameCalm" class="text-xs font-semibold text-main">Calm</span>
+          </button>
+          <button onclick="selectMood('sad')" class="mood-btn p-3 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-brand-500 transition-all flex flex-col items-center gap-2 bg-card-subtle group">
+            <span class="text-2xl group-hover:scale-110 transition-transform">🌧️</span>
+            <span id="moodNameSad" class="text-xs font-semibold text-main">Sad</span>
+          </button>
+          <button onclick="selectMood('anxious')" class="mood-btn p-3 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-brand-500 transition-all flex flex-col items-center gap-2 bg-card-subtle group">
+            <span class="text-2xl group-hover:scale-110 transition-transform">😰</span>
+            <span id="moodNameAnxious" class="text-xs font-semibold text-main">Anxious</span>
+          </button>
+          <button onclick="selectMood('tired')" class="mood-btn p-3 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-brand-500 transition-all flex flex-col items-center gap-2 bg-card-subtle group">
+            <span class="text-2xl group-hover:scale-110 transition-transform">🥱</span>
+            <span id="moodNameTired" class="text-xs font-semibold text-main">Tired</span>
+          </button>
+          <button onclick="selectMood('frustrated')" class="mood-btn p-3 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-brand-500 transition-all flex flex-col items-center gap-2 bg-card-subtle group">
+            <span class="text-2xl group-hover:scale-110 transition-transform">🔥</span>
+            <span id="moodNameFrustrated" class="text-xs font-semibold text-main">Frustrated</span>
+          </button>
+        </div>
+
+        <!-- Dynamic Advice Box -->
+        <div id="adviceBox" class="p-5 rounded-xl bg-gradient-to-r from-brand-600/10 to-accent-500/10 border border-brand-500/20">
+          <div class="flex items-start gap-3">
+            <div class="p-2 rounded-lg bg-brand-500/20 text-brand-500 mt-0.5">
+              <i class="fa-solid fa-lightbulb"></i>
+            </div>
+            <div>
+              <h3 id="adviceTitle" class="text-sm font-bold text-main">Tailored Guidance</h3>
+              <p id="adviceText" class="text-sm text-muted mt-1 leading-relaxed">Select a mood above to receive tailored advice and suggestions for your day.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DASHBOARD TASKS PREVIEW -->
+      <div class="p-6 sm:p-8 rounded-2xl bg-surface border shadow-sm">
+        <div class="flex items-center justify-between mb-6">
+          <h2 id="lblRecentTasks" class="text-lg font-bold text-main">Priority Focus</h2>
+          <button onclick="switchTab('tasks')" class="text-xs font-semibold text-brand-500 hover:underline">View All Tasks →</button>
+        </div>
+        <div id="dashboardTaskList" class="space-y-3">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: TASKS & REMINDERS -->
+    <section id="tab-tasks" class="tab-content hidden space-y-6">
+      <!-- Task Controls Header -->
+      <div class="p-6 rounded-2xl bg-surface border shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div class="relative w-full md:w-80">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-muted text-sm"></i>
+          <input type="text" id="taskSearchInput" oninput="renderTasks()" placeholder="Search tasks..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <!-- Category Filter -->
+          <select id="taskCategoryFilter" onchange="renderTasks()" class="px-3 py-2.5 rounded-xl border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="all">All Categories</option>
+            <option value="Personal">Personal</option>
+            <option value="Work">Work</option>
+            <option value="Health">Health</option>
+            <option value="Ideas">Ideas</option>
+          </select>
+
+          <!-- Status Filter -->
+          <select id="taskStatusFilter" onchange="renderTasks()" class="px-3 py-2.5 rounded-xl border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+          </select>
+
+          <button onclick="openTaskModal()" class="px-4 py-2.5 rounded-xl bg-brand-600 text-white font-semibold text-sm shadow-md hover:bg-brand-700 transition-all flex items-center gap-2 ml-auto md:ml-0">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add Task</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Tasks List -->
+      <div id="fullTaskList" class="space-y-3">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- TAB 3: DIARY & REFLECTIONS -->
+    <section id="tab-journal" class="tab-content hidden space-y-6">
+      <div class="p-6 rounded-2xl bg-surface border shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div class="relative w-full sm:w-80">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-muted text-sm"></i>
+          <input type="text" id="journalSearchInput" oninput="renderJournals()" placeholder="Search journal entries..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+        </div>
+
+        <button onclick="openJournalModal()" class="px-4 py-2.5 rounded-xl bg-brand-600 text-white font-semibold text-sm shadow-md hover:bg-brand-700 transition-all flex items-center gap-2 w-full sm:w-auto justify-center">
+          <i class="fa-solid fa-pen-nib"></i>
+          <span>Write Entry</span>
+        </button>
+      </div>
+
+      <!-- Journal Cards Grid -->
+      <div id="journalGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- TAB 4: MOOD INSIGHTS -->
+    <section id="tab-mood" class="tab-content hidden space-y-8">
+      
+      <!-- EMPTY STATE PLACEHOLDER (Hidden when mood is logged) -->
+      <div id="moodEmptyState" class="p-12 text-center bg-surface border rounded-2xl shadow-sm space-y-4">
+        <div class="w-16 h-16 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center text-2xl mx-auto">
+          <i class="fa-solid fa-face-smile"></i>
+        </div>
+        <h3 class="text-lg font-bold text-main">No Mood Logged Today</h3>
+        <p class="text-sm text-muted max-w-md mx-auto">Select a mood on the Dashboard to unlock your daily mood breakdown chart and track your emotional history.</p>
+        <button onclick="switchTab('dashboard')" class="px-5 py-2.5 rounded-xl bg-brand-600 text-white font-semibold text-sm shadow-md hover:bg-brand-700 transition-all">
+          Go to Dashboard
+        </button>
+      </div>
+
+      <!-- INSIGHTS CONTENT (Hidden until mood selected) -->
+      <div id="moodInsightsContent" class="grid grid-cols-1 lg:grid-cols-3 gap-8 hidden">
+        <!-- Chart Container -->
+        <div class="lg:col-span-1 p-6 rounded-2xl bg-surface border shadow-sm flex flex-col items-center justify-center">
+          <h2 id="lblMoodDistribution" class="text-base font-bold text-main mb-4 self-start">Mood Breakdown</h2>
+          <div class="w-full max-w-[260px] aspect-square">
+            <canvas id="moodChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Mood Logs History -->
+        <div class="lg:col-span-2 p-6 rounded-2xl bg-surface border shadow-sm flex flex-col">
+          <h2 id="lblMoodHistory" class="text-base font-bold text-main mb-4">Mood History Logs</h2>
+          <div id="moodLogsHistory" class="space-y-3 max-h-[380px] overflow-y-auto pr-2">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: PROFILE PICTURE UPLOAD -->
+  <div id="profileModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="modal-box bg-surface border w-full max-w-sm rounded-2xl p-6 shadow-2xl relative space-y-5 text-center">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h3 class="text-lg font-bold text-main">Profile Photo</h3>
+        <button onclick="closeProfileModal()" class="text-muted hover:text-main"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div class="flex flex-col items-center gap-4">
+        <div id="profileModalPreview" class="w-24 h-24 rounded-full bg-gradient-to-tr from-brand-600 to-accent-500 border-2 border-brand-500/50 flex items-center justify-center text-white overflow-hidden shadow-lg">
+          <i id="modalFallbackIcon" class="fa-solid fa-user text-3xl"></i>
+          <img id="modalPreviewImg" src="" alt="Profile Preview" class="w-full h-full object-cover hidden" />
+        </div>
+
+        <input type="file" id="profilePicInput" accept="image/*" onchange="handleImageUpload(event)" class="hidden" />
+        
+        <div class="flex items-center gap-3 w-full">
+          <button onclick="document.getElementById('profilePicInput').click()" class="flex-1 px-4 py-2.5 rounded-xl bg-brand-600 text-white font-semibold text-sm shadow-md hover:bg-brand-700 transition-all">
+            Upload Image
+          </button>
+          <button onclick="removeProfilePic()" class="px-4 py-2.5 rounded-xl border border-rose-500/30 text-rose-500 font-semibold text-sm hover:bg-rose-500/10 transition-all">
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT TASK -->
+  <div id="taskModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="modal-box bg-surface border w-full max-w-md rounded-2xl p-6 shadow-2xl relative space-y-4">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h3 id="taskModalTitle" class="text-lg font-bold text-main">New Task</h3>
+        <button onclick="closeTaskModal()" class="text-muted hover:text-main"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form id="taskForm" onsubmit="saveTask(event)" class="space-y-4">
+        <input type="hidden" id="taskId" />
+        
+        <div>
+          <label class="block text-xs font-semibold text-muted mb-1">Title</label>
+          <input type="text" id="taskTitleInput" required placeholder="What needs to be done?" class="w-full px-3.5 py-2.5 rounded-xl border text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-muted mb-1">Category</label>
+            <select id="taskCategoryInput" class="w-full px-3 py-2.5 rounded-xl border text-sm font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <option value="Personal">Personal</option>
+              <option value="Work">Work</option>
+              <option value="Health">Health</option>
+              <option value="Ideas">Ideas</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-muted mb-1">Priority</label>
+            <select id="taskPriorityInput" class="w-full px-3 py-2.5 rounded-xl border text-sm font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <option value="Low">Low</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-muted mb-1">Due Date</label>
+          <input type="date" id="taskDueDateInput" class="w-full px-3.5 py-2.5 rounded-xl border text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none" />
+        </div>
+
+        <div class="flex justify-end gap-3 pt-3">
+          <button type="button" onclick="closeTaskModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-muted hover:bg-card-subtle">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-sm font-semibold bg-brand-600 text-white hover:bg-brand-700 shadow-md">Save Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT JOURNAL -->
+  <div id="journalModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="modal-box bg-surface border w-full max-w-lg rounded-2xl p-6 shadow-2xl relative space-y-4">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h3 id="journalModalTitle" class="text-lg font-bold text-main">New Diary Reflection</h3>
+        <button onclick="closeJournalModal()" class="text-muted hover:text-main"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form id="journalForm" onsubmit="saveJournal(event)" class="space-y-4">
+        <input type="hidden" id="journalId" />
+
+        <div>
+          <label class="block text-xs font-semibold text-muted mb-1">Entry Title</label>
+          <input type="text" id="journalTitleInput" required placeholder="Title of your reflection..." class="w-full px-3.5 py-2.5 rounded-xl border text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-muted mb-1">Mood Tag</label>
+            <select id="journalMoodInput" class="w-full px-3 py-2.5 rounded-xl border text-sm font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <option value="😊 Happy">😊 Happy</option>
+              <option value="🎯 Focused">🎯 Focused</option>
+              <option value="🌿 Calm">🌿 Calm</option>
+              <option value="🌧️ Sad">🌧️ Sad</option>
+              <option value="😰 Anxious">😰 Anxious</option>
+              <option value="🥱 Tired">🥱 Tired</option>
+              <option value="🔥 Frustrated">🔥 Frustrated</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-muted mb-1">Category / Tag</label>
+            <input type="text" id="journalTagInput" placeholder="e.g., Growth, Work" class="w-full px-3.5 py-2.5 rounded-xl border text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-muted mb-1">Reflection Notes</label>
+          <textarea id="journalContentInput" rows="5" required placeholder="Write your thoughts here..." class="w-full px-3.5 py-2.5 rounded-xl border text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none resize-none"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-3">
+          <button type="button" onclick="closeJournalModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-muted hover:bg-card-subtle">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-sm font-semibold bg-brand-600 text-white hover:bg-brand-700 shadow-md">Save Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    // --- TRANSLATION DICTIONARY ---
+    const i18n = {
+      en: {
+        navDashboard: "Dashboard",
+        navTasks: "Tasks & Reminders",
+        navJournal: "Diary & Reflections",
+        navMood: "Mood Insights",
+        greetingTitle: "Welcome Back",
+        btnQuickTask: "New Task",
+        btnQuickJournal: "New Entry",
+        lblPendingTasks: "Pending Tasks",
+        lblCompletedTasks: "Completed Today",
+        lblTotalReflections: "Journal Entries",
+        lblHowFeeling: "How are you feeling right now?",
+        lblMoodDesc: "Select your current state to receive personalized advice & log your emotion.",
+        lblRecentTasks: "Priority Focus",
+        lblMoodDistribution: "Mood Breakdown",
+        lblMoodHistory: "Mood History Logs",
+        adviceTitle: "Tailored Guidance",
+        adviceDefault: "Select a mood above to receive tailored advice and suggestions for your day.",
+        emptyTasks: "No pending tasks. Take a moment to relax or add a new task!",
+        emptyJournals: "No reflections logged yet. Click 'New Entry' to document your thoughts.",
+        emptyMoods: "No mood logs yet. Perform a check-in on the dashboard!",
+        advice: {
+          happy: "Your elevated energy is contagious! Take advantage of this positive momentum to tackles creative projects or inspire someone around you.",
+          focused: "You are in a state of high productivity flow. Minimize distractions, lock into your priorities, and make significant strides today.",
+          calm: "Tranquility is strength. Enjoy this moment of peace to reflect, plan strategically, or engage in mindful contemplation.",
+          sad: "It's completely okay to feel down. Practice self-compassion today. Consider stepping outside for light air, sipping water, or taking a slow walk.",
+          anxious: "Take a deep breath in through your nose for 4 seconds, hold for 4, and release. Focus strictly on what is within your control right now.",
+          tired: "Your mind and body are signaling for rest. Honor your energy limits: drink hydration fluids, stretch lightly, or plan an early bedtime.",
+          frustrated: "Channel intense energy productively. Take a quick physical break, walk away from the immediate stressor, and re-approach with clarity."
+        }
+      },
+      es: {
+        navDashboard: "Panel Principal",
+        navTasks: "Tareas y Recordatorios",
+        navJournal: "Diario y Reflexiones",
+        navMood: "Análisis del Estado de Ánimo",
+        greetingTitle: "Bienvenido de nuevo",
+        btnQuickTask: "Nueva Tarea",
+        btnQuickJournal: "Nueva Entrada",
+        lblPendingTasks: "Tareas Pendientes",
+        lblCompletedTasks: "Completadas Hoy",
+        lblTotalReflections: "Entradas del Diario",
+        lblHowFeeling: "¿Cómo te sientes en este momento?",
+        lblMoodDesc: "Selecciona tu estado para recibir un consejo personalizado y registrar tu emoción.",
+        lblRecentTasks: "Enfoque Prioritario",
+        lblMoodDistribution: "Desglose de Ánimo",
+        lblMoodHistory: "Historial de Ánimo",
+        adviceTitle: "Consejo Personalizado",
+        adviceDefault: "Selecciona un estado de ánimo arriba para recibir consejos adaptados a tu día.",
+        emptyTasks: "No hay tareas pendientes. ¡Aprovecha para relajarte o añade una nueva!",
+        emptyJournals: "No hay entradas grabadas aún. Haz clic en 'Nueva Entrada' para escribir.",
+        emptyMoods: "No hay registros de ánimo aún. ¡Regístralo en el panel principal!",
+        advice: {
+          happy: "¡Tu gran energía es contagiosa! Aprovecha este impulso positivo para abordar proyectos creativos o inspirar a otros.",
+          focused: "Estás en un estado de alto rendimiento. Minimiza las distracciones y avanza significativamente en tus prioridades.",
+          calm: "La tranquilidad es fortaleza. Disfruta de este momento de paz para reflexionar o planificar con claridad.",
+          sad: "Está bien no sentirse al 100%. Sé amable contigo mismo hoy. Camina un poco, hidrátate o descansa.",
+          anxious: "Inhala profundamente por 4 segundos, sostén 4 segundos y exhala. Enfócate solo en lo que puedes controlar.",
+          tired: "Tu cuerpo pide un descanso. Respeta tus límites: toma agua, estírate o duerme más temprano.",
+          frustrated: "Canaliza esa energía de forma productiva. Tómate una pequeña pausa física y regresa con la mente despejada."
+        }
+      },
+      fr: {
+        navDashboard: "Tableau de Bord",
+        navTasks: "Tâches & Rappels",
+        navJournal: "Journal & Réflexions",
+        navMood: "Analyse de l'Humeur",
+        greetingTitle: "Bon retour parmi nous",
+        btnQuickTask: "Nouvelle Tâche",
+        btnQuickJournal: "Nouvelle Entrée",
+        lblPendingTasks: "Tâches en Attente",
+        lblCompletedTasks: "Complétées Aujourd'hui",
+        lblTotalReflections: "Entrées du Journal",
+        lblHowFeeling: "Comment vous sentez-vous en ce moment ?",
+        lblMoodDesc: "Sélectionnez votre état pour recevoir un conseil personnalisé et enregistrer votre humeur.",
+        lblRecentTasks: "Priorités du Jour",
+        lblMoodDistribution: "Répartition de l'Humeur",
+        lblMoodHistory: "Historique des Humeurs",
+        adviceTitle: "Conseil Personnalisé",
+        adviceDefault: "Sélectionnez une humeur ci-dessus pour recevoir des conseils adaptés.",
+        emptyTasks: "Aucune tâche en attente. Profitez-en pour vous détendre !",
+        emptyJournals: "Aucune entrée pour l'instant. Cliquez sur 'Nouvelle Entrée' pour écrire.",
+        emptyMoods: "Aucun enregistrement d'humeur. Faites un suivi depuis le tableau de bord !",
+        advice: {
+          happy: "Votre belle énergie est contagieuse ! Profitez-en pour créer ou inspirer votre entourage.",
+          focused: "Vous êtes dans un état de concentration maximale. Éliminez les distractions et avancez à grands pas.",
+          calm: "La sérénité est une force. Profitez de ce moment de calme pour méditer ou planifier sereinement.",
+          sad: "Il est tout à fait normal de ressentir de la tristesse. Prenez soin de vous avec de petites attentions simples.",
+          anxious: "Respirez profondément : inspirez 4 sec, bloquez 4 sec, puis expirez. Concentrez-vous sur le présent.",
+          tired: "Votre corps vous demande du repos. Hydratez-vous et prévoyez une nuit réparatrice.",
+          frustrated: "Prenez une pause pour libérer la pression. Revenez-y avec un esprit apaisé."
+        }
+      },
+      de: {
+        navDashboard: "Dashboard",
+        navTasks: "Aufgaben & Erinnerungen",
+        navJournal: "Tagebuch & Gedanken",
+        navMood: "Stimmungs-Analyse",
+        greetingTitle: "Willkommen zurück",
+        btnQuickTask: "Neue Aufgabe",
+        btnQuickJournal: "Neuer Eintrag",
+        lblPendingTasks: "Offene Aufgaben",
+        lblCompletedTasks: "Heute Erledigt",
+        lblTotalReflections: "Tagebucheinträge",
+        lblHowFeeling: "Wie fühlen Sie sich gerade?",
+        lblMoodDesc: "Wählen Sie Ihre Stimmung für persönliche Ratschläge und zur Protokollierung.",
+        lblRecentTasks: "Fokus-Aufgaben",
+        lblMoodDistribution: "Stimmungsverteilung",
+        lblMoodHistory: "Stimmungsverlauf",
+        adviceTitle: "Persönlicher Ratschlag",
+        adviceDefault: "Wählen Sie oben eine Stimmung aus, um individuelle Tipps zu erhalten.",
+        emptyTasks: "Keine offenen Aufgaben. Zeit zum Entspannen!",
+        emptyJournals: "Noch keine Einträge vorhanden. Klicken Sie auf 'Neuer Eintrag'.",
+        emptyMoods: "Noch keine Stimmungsdaten vorhanden.",
+        advice: {
+          happy: "Ihre gute Laune steckt an! Nutzen Sie diesen Schwung für kreative Ideen.",
+          focused: "Sie sind hochkonzentriert. Nutzen Sie den Flow für Ihre wichtigsten Prioritäten.",
+          calm: "Ruhe gibt Kraft. Genießen Sie diesen friedlichen Moment der Klarheit.",
+          sad: "Es ist völlig okay, traurig zu sein. Gönnen Sie sich heute etwas Ruhe und Mitgefühl.",
+          anxious: "Atmen Sie tief durch: 4 Sek. einatmen, 4 Sek. halten, ausatmen. Fokus aufs Jetzt.",
+          tired: "Ihr Körper braucht Erholung. Trinken Sie ausreichend Wasser und schlafen Sie früh.",
+          frustrated: "Nutzen Sie die Energie konstruktiv. Machen Sie eine kurze Pause an der frischen Luft."
+        }
+      },
+      ja: {
+        navDashboard: "ダッシュボード",
+        navTasks: "タスク＆リマインダー",
+        navJournal: "日記＆振り返り",
+        navMood: "気分アナリティクス",
+        greetingTitle: "おかえりなさい",
+        btnQuickTask: "新規タスク",
+        btnQuickJournal: "日記を書く",
+        lblPendingTasks: "保留中のタスク",
+        lblCompletedTasks: "本日完了",
+        lblTotalReflections: "日記の合計",
+        lblHowFeeling: "現在の気分はいかがですか？",
+        lblMoodDesc: "気分を選択して、パーソナライズされたアドバイスを受け取りましょう。",
+        lblRecentTasks: "優先タスク",
+        lblMoodDistribution: "感情の割合",
+        lblMoodHistory: "感情の履歴",
+        adviceTitle: "アドバイス",
+        adviceDefault: "上の絵文字をタップしてアドバイスを表示します。",
+        emptyTasks: "保留中のタスクはありません。リラックスするか新しいタスクを追加しましょう！",
+        emptyJournals: "まだ日記のエントリがありません。「日記を書く」をクリックして記録を開始しましょう。",
+        emptyMoods: "気分の記録がまだありません。",
+        advice: {
+          happy: "素晴らしいエネルギーですね！このポジティブな勢いをクリエイティブな活動に活かしましょう。",
+          focused: "非常に高い集中状態です。ノイズを減らし、最優先事項に集中しましょう。",
+          calm: "穏やかな心は力です。この平和な時間を楽しんで、計画や振り返りを行いましょう。",
+          sad: "落ち込む日があっても大丈夫です。今日はご自身をいたわり、温かいお茶でも飲みましょう。",
+          anxious: "深く息を吸って4秒、止めて4秒、ゆっくり吐きましょう。今コントロールできることに集中します。",
+          tired: "身体が休養を求めています。水分を補給し、早めに就寝してリフレッシュしましょう。",
+          frustrated: "一呼吸置きましょう。少し歩いて気分転換し、冷静さを取り戻してから再開しましょう。"
+        }
+      }
+    };
+
+    // --- APPLICATION STATE (CLEAN SLATE) ---
+    let currentLang = localStorage.getItem('aura_lang') || 'en';
+    let currentTheme = localStorage.getItem('aura_theme') || 'dark';
+    let profilePicData = localStorage.getItem('aura_profile_pic') || null;
+
+    // Daily Reset Logic
+    const todayStr = new Date().toISOString().split('T')[0];
+    const lastActiveDate = localStorage.getItem('aura_last_active_date');
+
+    if (lastActiveDate !== todayStr) {
+      localStorage.setItem('aura_moodLogs', JSON.stringify([]));
+      localStorage.setItem('aura_last_active_date', todayStr);
+    }
+
+    let tasks = JSON.parse(localStorage.getItem('aura_tasks')) || [];
+    let journals = JSON.parse(localStorage.getItem('aura_journals')) || [];
+    let moodLogs = JSON.parse(localStorage.getItem('aura_moodLogs')) || [];
+    let selectedMood = null;
+    let moodChartInstance = null;
+
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      initProfilePic();
+
+      const langSelectEl = document.getElementById('langSelect');
+      if (langSelectEl) {
+        langSelectEl.value = currentLang;
+      }
+      changeLanguage(currentLang);
+      renderAll();
+    });
+
+    // --- PROFILE PICTURE MANAGEMENT ---
+    function initProfilePic() {
+      const avatarImg = document.getElementById('avatarImage');
+      const avatarFallback = document.getElementById('avatarFallbackIcon');
+      const modalImg = document.getElementById('modalPreviewImg');
+      const modalFallback = document.getElementById('modalFallbackIcon');
+
+      if (profilePicData) {
+        avatarImg.src = profilePicData;
+        avatarImg.classList.remove('hidden');
+        avatarFallback.classList.add('hidden');
+
+        modalImg.src = profilePicData;
+        modalImg.classList.remove('hidden');
+        modalFallback.classList.add('hidden');
+      } else {
+        avatarImg.classList.add('hidden');
+        avatarFallback.classList.remove('hidden');
+
+        modalImg.classList.add('hidden');
+        modalFallback.classList.remove('hidden');
+      }
+    }
+
+    function openProfileModal() {
+      document.getElementById('profileModal').classList.remove('hidden');
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          profilePicData = evt.target.result;
+          localStorage.setItem('aura_profile_pic', profilePicData);
+          initProfilePic();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removeProfilePic() {
+      profilePicData = null;
+      localStorage.removeItem('aura_profile_pic');
+      initProfilePic();
+    }
+
+    // --- THEME MANAGEMENT ---
+    function initTheme() {
+      if (currentTheme === 'light') {
+        document.documentElement.classList.remove('dark');
+        document.getElementById('themeIcon').className = 'fa-solid fa-moon text-indigo-600';
+      } else {
+        document.documentElement.classList.add('dark');
+        document.getElementById('themeIcon').className = 'fa-solid fa-sun text-amber-400';
+      }
+    }
+
+    function toggleTheme() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        currentTheme = 'light';
+        document.getElementById('themeIcon').className = 'fa-solid fa-moon text-indigo-600';
+      } else {
+        document.documentElement.classList.add('dark');
+        currentTheme = 'dark';
+        document.getElementById('themeIcon').className = 'fa-solid fa-sun text-amber-400';
+      }
+      localStorage.setItem('aura_theme', currentTheme);
+      if (moodChartInstance && moodLogs.length > 0) initChart();
+    }
+
+    // --- LANGUAGE MANAGEMENT ---
+    function changeLanguage(langKey) {
+      currentLang = langKey;
+      localStorage.setItem('aura_lang', langKey);
+      const langSelectEl = document.getElementById('langSelect');
+      if (langSelectEl && langSelectEl.value !== langKey) {
+        langSelectEl.value = langKey;
+      }
+
+      const langData = i18n[langKey] || i18n.en;
+
+      // Update Navigation & Header Texts
+      document.getElementById('txtNavDashboard').innerText = langData.navDashboard;
+      document.getElementById('txtNavTasks').innerText = langData.navTasks;
+      document.getElementById('txtNavJournal').innerText = langData.navJournal;
+      document.getElementById('txtNavMood').innerText = langData.navMood;
+
+      document.getElementById('greetingTitle').innerText = langData.greetingTitle;
+      document.getElementById('btnQuickTask').innerText = langData.btnQuickTask;
+      document.getElementById('btnQuickJournal').innerText = langData.btnQuickJournal;
+
+      document.getElementById('lblPendingTasks').innerText = langData.lblPendingTasks;
+      document.getElementById('lblCompletedTasks').innerText = langData.lblCompletedTasks;
+      document.getElementById('lblTotalReflections').innerText = langData.lblTotalReflections;
+
+      document.getElementById('lblHowFeeling').innerText = langData.lblHowFeeling;
+      document.getElementById('lblMoodDesc').innerText = langData.lblMoodDesc;
+      document.getElementById('lblRecentTasks').innerText = langData.lblRecentTasks;
+      document.getElementById('lblMoodDistribution').innerText = langData.lblMoodDistribution;
+      document.getElementById('lblMoodHistory').innerText = langData.lblMoodHistory;
+
+      document.getElementById('adviceTitle').innerText = langData.adviceTitle;
+      
+      if (!selectedMood) {
+        document.getElementById('adviceText').innerText = langData.adviceDefault;
+      } else {
+        document.getElementById('adviceText').innerText = langData.advice[selectedMood];
+      }
+
+      // Update Date Header
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('currentDateStr').innerText = new Date().toLocaleDateString(langKey, options);
+
+      renderAll();
+    }
+
+    // --- TAB NAVIGATION ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.className = "nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-muted hover:bg-card-subtle hover:text-main";
+      });
+
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      const activeNav = document.getElementById(`nav-${tabId}`);
+      activeNav.className = "nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all bg-brand-600 text-white shadow-lg shadow-brand-600/30";
+
+      if (tabId === 'mood') {
+        renderMoodInsightsView();
+      }
+    }
+
+    // --- MOOD SELECTION & ADVICE ---
+    function selectMood(moodKey) {
+      selectedMood = moodKey;
+      const langData = i18n[currentLang] || i18n.en;
+      
+      document.getElementById('adviceText').innerText = langData.advice[moodKey];
+
+      // Add to Mood Logs
+      const moodEmojis = { happy: '😊', focused: '🎯', calm: '🌿', sad: '🌧️', anxious: '😰', tired: '🥱', frustrated: '🔥' };
+      const newLog = {
+        id: Date.now(),
+        key: moodKey,
+        emoji: moodEmojis[moodKey],
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      moodLogs.unshift(newLog);
+      localStorage.setItem('aura_moodLogs', JSON.stringify(moodLogs));
+
+      renderStats();
+      renderMoodLogs();
+      if (!document.getElementById('tab-mood').classList.contains('hidden')) {
+        renderMoodInsightsView();
+      }
+    }
+
+    // --- MOOD INSIGHTS VIEW CONTROLLER ---
+    function renderMoodInsightsView() {
+      const emptyState = document.getElementById('moodEmptyState');
+      const content = document.getElementById('moodInsightsContent');
+
+      if (moodLogs.length === 0) {
+        emptyState.classList.remove('hidden');
+        content.classList.add('hidden');
+      } else {
+        emptyState.classList.remove('hidden');
+        content.classList.remove('hidden');
+        initChart();
+      }
+    }
+
+    // --- TASK MANAGEMENT ---
+    function openTaskModal(taskId = null) {
+      document.getElementById('taskModal').classList.remove('hidden');
+      if (taskId) {
+        const task = tasks.find(t => t.id === taskId);
+        if (task) {
+          document.getElementById('taskId').value = task.id;
+          document.getElementById('taskTitleInput').value = task.title;
+          document.getElementById('taskCategoryInput').value = task.category;
+          document.getElementById('taskPriorityInput').value = task.priority;
+          document.getElementById('taskDueDateInput').value = task.dueDate || '';
+          document.getElementById('taskModalTitle').innerText = 'Edit Task';
+        }
+      } else {
+        document.getElementById('taskForm').reset();
+        document.getElementById('taskId').value = '';
+        document.getElementById('taskModalTitle').innerText = 'New Task';
+      }
+    }
+
+    function closeTaskModal() {
+      document.getElementById('taskModal').classList.add('hidden');
+    }
+
+    function saveTask(e) {
+      e.preventDefault();
+      const id = document.getElementById('taskId').value;
+      const title = document.getElementById('taskTitleInput').value;
+      const category = document.getElementById('taskCategoryInput').value;
+      const priority = document.getElementById('taskPriorityInput').value;
+      const dueDate = document.getElementById('taskDueDateInput').value;
+
+      if (id) {
+        const task = tasks.find(t => t.id == id);
+        if (task) {
+          task.title = title;
+          task.category = category;
+          task.priority = priority;
+          task.dueDate = dueDate;
+        }
+      } else {
+        tasks.unshift({
+          id: Date.now(),
+          title,
+          category,
+          priority,
+          dueDate,
+          completed: false
+        });
+      }
+
+      localStorage.setItem('aura_tasks', JSON.stringify(tasks));
+      closeTaskModal();
+      renderAll();
+    }
+
+    function toggleTaskComplete(id) {
+      const task = tasks.find(t => t.id === id);
+      if (task) {
+        task.completed = !task.completed;
+        localStorage.setItem('aura_tasks', JSON.stringify(tasks));
+        renderAll();
+      }
+    }
+
+    function deleteTask(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      localStorage.setItem('aura_tasks', JSON.stringify(tasks));
+      renderAll();
+    }
+
+    function renderTasks() {
+      const query = (document.getElementById('taskSearchInput')?.value || '').toLowerCase();
+      const catFilter = document.getElementById('taskCategoryFilter')?.value || 'all';
+      const statusFilter = document.getElementById('taskStatusFilter')?.value || 'all';
+
+      let filtered = tasks.filter(t => {
+        const matchesSearch = t.title.toLowerCase().includes(query);
+        const matchesCat = catFilter === 'all' || t.category === catFilter;
+        const matchesStatus = statusFilter === 'all' || 
+          (statusFilter === 'pending' && !t.completed) || 
+          (statusFilter === 'completed' && t.completed);
+        return matchesSearch && matchesCat && matchesStatus;
+      });
+
+      const fullContainer = document.getElementById('fullTaskList');
+      const dashContainer = document.getElementById('dashboardTaskList');
+      const langData = i18n[currentLang] || i18n.en;
+
+      if (filtered.length === 0) {
+        const emptyHtml = `<div class="p-8 text-center text-muted text-sm bg-card-subtle rounded-xl border border-dashed">${langData.emptyTasks}</div>`;
+        if (fullContainer) fullContainer.innerHTML = emptyHtml;
+        if (dashContainer) dashContainer.innerHTML = emptyHtml;
+        return;
+      }
+
+      let html = '';
+      filtered.forEach(t => {
+        const priorityColors = {
+          High: 'text-rose-500 bg-rose-500/10 border-rose-500/20',
+          Medium: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+          Low: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20'
+        };
+
+        html += `
+          <div class="p-4 rounded-xl bg-surface border flex items-center justify-between gap-4 transition-all hover:border-brand-500/50">
+            <div class="flex items-center gap-3.5 flex-1 min-w-0">
+              <button onclick="toggleTaskComplete(${t.id})" class="w-5 h-5 rounded-md border flex items-center justify-center transition-all ${t.completed ? 'bg-brand-600 border-brand-600 text-white' : 'border-gray-400 dark:border-gray-600 hover:border-brand-500'}">
+                ${t.completed ? '<i class="fa-solid fa-check text-xs"></i>' : ''}
+              </button>
+              <div class="truncate">
+                <p class="text-sm font-semibold ${t.completed ? 'line-through text-muted' : 'text-main'} truncate">${t.title}</p>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border ${priorityColors[t.priority]}">${t.priority}</span>
+                  <span class="text-[11px] text-muted"><i class="fa-solid fa-folder text-[10px] mr-1"></i>${t.category}</span>
+                  ${t.dueDate ? `<span class="text-[11px] text-muted"><i class="fa-solid fa-calendar text-[10px] mr-1"></i>${t.dueDate}</span>` : ''}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openTaskModal(${t.id})" class="text-muted hover:text-brand-500 p-1.5"><i class="fa-solid fa-pen"></i></button>
+              <button onclick="deleteTask(${t.id})" class="text-muted hover:text-rose-500 p-1.5"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      });
+
+      if (fullContainer) fullContainer.innerHTML = html;
+      if (dashContainer) dashContainer.innerHTML = tasks.slice(0, 4).map(t => `
+        <div class="p-3.5 rounded-xl bg-card-subtle border flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <button onclick="toggleTaskComplete(${t.id})" class="w-4 h-4 rounded border flex items-center justify-center ${t.completed ? 'bg-brand-600 border-brand-600 text-white' : 'border-gray-400'}">
+              ${t.completed ? '<i class="fa-solid fa-check text-[10px]"></i>' : ''}
+            </button>
+            <span class="text-sm font-medium ${t.completed ? 'line-through text-muted' : 'text-main'} truncate">${t.title}</span>
+          </div>
+          <span class="text-[10px] font-semibold text-muted uppercase tracking-wider shrink-0">${t.category}</span>
+        </div>
+      `).join('') || `<div class="p-4 text-center text-muted text-xs">${langData.emptyTasks}</div>`;
+    }
+
+    // --- JOURNAL MANAGEMENT ---
+    function openJournalModal(id = null) {
+      document.getElementById('journalModal').classList.remove('hidden');
+      if (id) {
+        const j = journals.find(item => item.id === id);
+        if (j) {
+          document.getElementById('journalId').value = j.id;
+          document.getElementById('journalTitleInput').value = j.title;
+          document.getElementById('journalMoodInput').value = j.mood;
+          document.getElementById('journalTagInput').value = j.tag || '';
+          document.getElementById('journalContentInput').value = j.content;
+          document.getElementById('journalModalTitle').innerText = 'Edit Reflection';
+        }
+      } else {
+        document.getElementById('journalForm').reset();
+        document.getElementById('journalId').value = '';
+        document.getElementById('journalModalTitle').innerText = 'New Reflection';
+      }
+    }
+
+    function closeJournalModal() {
+      document.getElementById('journalModal').classList.add('hidden');
+    }
+
+    function saveJournal(e) {
+      e.preventDefault();
+      const id = document.getElementById('journalId').value;
+      const title = document.getElementById('journalTitleInput').value;
+      const mood = document.getElementById('journalMoodInput').value;
+      const tag = document.getElementById('journalTagInput').value;
+      const content = document.getElementById('journalContentInput').value;
+
+      if (id) {
+        const j = journals.find(item => item.id == id);
+        if (j) {
+          j.title = title;
+          j.mood = mood;
+          j.tag = tag;
+          j.content = content;
+        }
+      } else {
+        journals.unshift({
+          id: Date.now(),
+          title,
+          mood,
+          tag: tag || 'Reflection',
+          content,
+          date: new Date().toLocaleDateString()
+        });
+      }
+
+      localStorage.setItem('aura_journals', JSON.stringify(journals));
+      closeJournalModal();
+      renderAll();
+    }
+
+    function deleteJournal(id) {
+      journals = journals.filter(j => j.id !== id);
+      localStorage.setItem('aura_journals', JSON.stringify(journals));
+      renderAll();
+    }
+
+    function renderJournals() {
+      const container = document.getElementById('journalGrid');
+      const query = (document.getElementById('journalSearchInput')?.value || '').toLowerCase();
+      const langData = i18n[currentLang] || i18n.en;
+
+      const filtered = journals.filter(j => 
+        j.title.toLowerCase().includes(query) || 
+        j.content.toLowerCase().includes(query) ||
+        (j.tag && j.tag.toLowerCase().includes(query))
+      );
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="col-span-full p-12 text-center text-muted text-sm bg-card-subtle rounded-2xl border border-dashed">${langData.emptyJournals}</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(j => `
+        <div class="p-6 rounded-2xl bg-surface border flex flex-col justify-between shadow-sm hover:border-brand-500/50 transition-all">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-bold text-brand-500 px-2.5 py-1 rounded-md bg-brand-500/10 border border-brand-500/20">${j.tag}</span>
+              <span class="text-xs text-muted">${j.date}</span>
+            </div>
+            <h3 class="text-base font-bold text-main mb-2">${j.title}</h3>
+            <p class="text-sm text-muted line-clamp-4 leading-relaxed mb-4">${j.content}</p>
+          </div>
+          <div class="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800">
+            <span class="text-sm">${j.mood}</span>
+            <div class="flex items-center gap-2">
+              <button onclick="openJournalModal(${j.id})" class="text-muted hover:text-brand-500 p-1"><i class="fa-solid fa-pen text-xs"></i></button>
+              <button onclick="deleteJournal(${j.id})" class="text-muted hover:text-rose-500 p-1"><i class="fa-solid fa-trash text-xs"></i></button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // --- MOOD LOGS & ANALYTICS ---
+    function renderMoodLogs() {
+      const container = document.getElementById('moodLogsHistory');
+      const langData = i18n[currentLang] || i18n.en;
+
+      if (moodLogs.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-muted text-sm bg-card-subtle rounded-xl border border-dashed">${langData.emptyMoods}</div>`;
+        return;
+      }
+
+      container.innerHTML = moodLogs.map(log => `
+        <div class="p-3.5 rounded-xl bg-card-subtle border flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <span class="text-xl">${log.emoji}</span>
+            <div>
+              <p class="text-sm font-semibold text-main capitalize">${log.key}</p>
+              <p class="text-[11px] text-muted">${log.timestamp}</p>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function initChart() {
+      const ctx = document.getElementById('moodChart')?.getContext('2d');
+      if (!ctx) return;
+
+      if (moodChartInstance) {
+        moodChartInstance.destroy();
+      }
+
+      const moodCounts = { happy: 0, focused: 0, calm: 0, sad: 0, anxious: 0, tired: 0, frustrated: 0 };
+      moodLogs.forEach(log => {
+        if (moodCounts[log.key] !== undefined) moodCounts[log.key]++;
+      });
+
+      const isDark = document.documentElement.classList.contains('dark');
+
+      moodChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Happy', 'Focused', 'Calm', 'Sad', 'Anxious', 'Tired', 'Frustrated'],
+          datasets: [{
+            data: Object.values(moodCounts),
+            backgroundColor: ['#10b981', '#6366f1', '#14b8a6', '#3b82f6', '#f59e0b', '#8b5cf6', '#ef4444'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: isDark ? '#9ca3af' : '#0f172a',
+                font: { family: 'Plus Jakarta Sans', size: 11 }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // --- RENDER STATS & ALL ---
+    function renderStats() {
+      const pending = tasks.filter(t => !t.completed).length;
+      const completed = tasks.filter(t => t.completed).length;
+      
+      document.getElementById('statPendingCount').innerText = pending;
+      document.getElementById('statCompletedCount').innerText = completed;
+      document.getElementById('statReflectionsCount').innerText = journals.length;
+    }
+
+    function renderAll() {
+      renderStats();
+      renderTasks();
+      renderJournals();
+      renderMoodLogs();
+      renderMoodInsightsView();
+    }
+  </script>
+</body>
+</html>
